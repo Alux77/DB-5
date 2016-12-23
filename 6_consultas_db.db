@@ -1,0 +1,213 @@
+CodeaCamp04s-Mac-mini:base de datos codea_mac_04$ sqlite3 EssentialSQL.db
+-- Loading resources from /Users/codea_mac_04/.sqliterc
+
+SQLite version 3.8.10.2 2015-05-20 18:17:19
+Enter ".help" for usage hints.
+sqlite> .schema
+CREATE TABLE Customers (
+ CustomerID INTEGER PRIMARY KEY
+,CompanyName VARCHAR(60)
+,ContactName VARCHAR(40)
+,ContactTitle VARCHAR(60)
+,Address VARCHAR(60)
+,City VARCHAR(60)
+,State VARCHAR(2)
+);
+CREATE TABLE OrderDetails (
+ OrderDetailID INTEGER PRIMARY KEY
+,OrderID INTEGER
+,ProductID INTEGER
+,UnitPrice REAL
+,Quantity INTEGER
+);
+CREATE TABLE Orders(
+OrderID INTEGER PRIMARY KEY
+,CustomerID INTEGER
+,OrderDate VARCHAR(25)
+,RequiredDate VARCHAR(25)
+,ShippedDate VARCHAR(25)
+);
+
+*************************************
+1: TOTAL DE COMPRAS DEL USUARIO ID 3
+*************************************
+
+sqlite> SELECT COUNT(OrderId) FROM Orders WHERE CustomerId=3;
+COUNT(OrderId)
+--------------
+6
+
+****************************************
+2: TOTAL DE ORDENES DEL CLIENTE JIM WOOD
+****************************************
+
+sqlite> SELECT COUNT(Orders.OrderId), ContactName FROM Orders LEFT JOIN Customers ON Orders.CustomerId=Customers.CustomerID WHERE ContactName='Jim Wood';
+
+COUNT(Orders.OrderId)  ContactName
+---------------------  -----------
+6                      Jim Wood
+
+************************************************
+3: TOTAL DE ORDENES DE LA CLOMPAÑIA SLOTS CARPET
+************************************************
+
+sqlite> SELECT COUNT(Orders.OrderId), CompanyName FROM Orders LEFT JOIN Customers ON Orders.CustomerId=Customers.CustomerId WHERE CompanyName='Slots Carpet';
+
+COUNT(Orders.OrderId)  CompanyName 
+---------------------  ------------
+2                      Slots Carpet
+
+*************************************************************
+4: TOTAL DE ORDENES DE CADA COMPAÑIA ORDENADO ASCENDENTEMENTE
+*************************************************************
+
+sqlite> SELECT Customers.CompanyName, COUNT(OrderID) FROM Customers LEFT JOIN Orders ON Orders.CustomerId=Customers.CustomerId GROUP BY CompanyName ORDER BY COUNT(OrderID) DESC;
+
+CompanyName  COUNT(OrderID)
+-----------  --------------
+Floor Co.    6             
+Sagebrush C  5             
+Main Tile a  4             
+Deerfield T  3             
+Slots Carpe  2             
+
+******************************************************************************
+5: TOTAL DE ORDENES DE CADA COMPAÑIA ORDENADO POR COMPAÑÍA CON MENORES PEDIDOS
+******************************************************************************
+
+sqlite> SELECT Customers.CompanyName, COUNT(OrderID) FROM Customers LEFT JOIN Orders ON Orders.CustomerId=Customers.CustomerId GROUP BY CompanyName ORDER BY COUNT(OrderID) ASC;
+
+CompanyName   COUNT(OrderID)
+------------  --------------
+Slots Carpet  2             
+Deerfield Ti  3             
+Main Tile an  4             
+Sagebrush Ca  5             
+Floor Co.     6
+
+******************************
+6: LA COMPAÑÍA CON MAS ORDENES
+******************************
+
+sqlite> SELECT Customers.CompanyName, COUNT(OrderID) FROM Customers LEFT JOIN Orders ON Orders.CustomerId=Customers.CustomerId GROUP BY CompanyName HAVING COUNT(OrderID)=6;
+
+CompanyName  COUNT(OrderID)
+-----------  --------------
+Floor Co.    6            
+
+**********************************************************
+7: TOTAL DE ITEMS ORDENADOS POR COMPAÑÍA CON MAYOR A MENOR
+**********************************************************
+
+sqlite> SELECT Customers.CompanyName, SUM(OrderDetails.Quantity) as quantity
+   ...> FROM OrderDetails 
+   ...> LEFT JOIN Orders
+   ...> ON OrderDetails.OrderID=Orders.OrderID
+   ...> LEFT JOIN Customers 
+   ...> ON Orders.CustomerID=Customers.CustomerID
+   ...> GROUP by CompanyName
+   ...> Order by Quantity
+   ...> Desc;
+
+CompanyName   quantity  
+------------  ----------
+Slots Carpet  80        
+Sagebrush Ca  70        
+Deerfield Ti  40        
+Floor Co.     30        
+Main Tile an  20
+
+****************************
+8: CANTIDAD TOTAL DE ORDEN 4
+****************************
+
+sqlite> SELECT OrderDetails.OrderID, OrderDetails.UnitPrice * OrderDetails.Quantity
+   ...> FROM OrderDetails
+   ...> WHERE OrderID=4
+   ...> GROUP BY OrderID;
+
+OrderID     OrderDetails.UnitPrice * OrderDetails.Quantity
+----------  ----------------------------------------------
+4           400.0 
+
+*******************************
+9: CANTIDAD TOTAL DE CADA ORDEN
+*******************************
+
+sqlite> SELECT OrderDetails.OrderID, SUM(OrderDetails.UnitPrice) * SUM(OrderDetails.Quantity)
+   ...> FROM OrderDetails
+   ...> GROUP BY OrderID;
+
+OrderID     SUM(OrderDetails.UnitPrice) * SUM(OrderDetails.Quantity)
+----------  --------------------------------------------------------
+1           121.5                                                   
+2           5398.8                                                  
+3           3849.6                                                  
+4           400.0                                                   
+5           9899.0                                                  
+6           889.0                                                   
+7           2385.6                                                  
+8           3047.6                                                  
+9           300.0                                                   
+10          249.0                                                   
+11          1195.2                                                  
+12          81.0                                                    
+13          250.0                                                   
+14          1590.4                                                  
+15          1736.9                                                  
+16          367.5                                                   
+17          5210.0                                                  
+18          928.8                                                   
+19          3205.8                                                  
+20          381.0
+
+*********************************************
+10: MONTO TOTAL PARA CADA ORDEN MAYOR A 1,000
+*********************************************
+
+sqlite> SELECT OrderID, SUM(UnitPrice) * SUM(Quantity)
+   ...> FROM OrderDetails
+   ...> WHERE UnitPrice * Quantity > 1000
+   ...> GROUP BY OrderID;
+
+OrderID     SUM(UnitPrice) * SUM(Quantity)
+----------  ------------------------------
+2           1395.8                        
+3           2350.4                        
+5           6904.8                        
+7           1196.4                        
+8           1909.7                        
+15          1322.1                        
+17          1175.2                        
+19          1028.3
+
+************************************
+11: TOTAL DE ARTÍCULOS EN CADA ORDEN
+************************************
+
+sqlite> SELECT OrderID, SUM(Quantity)
+   ...> FROM OrderDetails
+   ...> GROUP BY OrderID;
+
+OrderID     SUM(Quantity)
+----------  -------------
+1           90           
+2           330          
+3           240          
+4           80           
+5           380          
+6           140          
+7           210          
+8           190          
+9           60           
+10          100          
+11          180          
+12          60           
+13          50           
+14          140          
+15          110          
+16          70           
+17          200          
+18          120          
+19          130          
+20          60
